@@ -212,33 +212,25 @@
             event.dataTransfer.setData("text/plain", event.target.id);
         }
         
-        // Add touch event listeners for mobile devices
-        function touchStart(event) {
-            // Prevent multiple touches
-            if (event.touches.length > 1) return;
-            const grain = event.target.closest('.grain');
+        // Touch events for mobile drag-and-drop
+        function handleTouch(event) {
+            const grain = singleGrainElement;
+            
             if (grain) {
-                // Set data for the drop function
-                event.dataTransfer = { getData: () => grain.id };
-            }
-        }
-
-        function touchMove(event) {
-            // Do nothing on touch move to make it a simple tap-and-drop
-            event.preventDefault(); // Prevent scrolling
-        }
-
-        function touchEnd(event) {
-            const grain = event.target.closest('.grain');
-            if (grain) {
-                // Check if the drop was on the box
-                const dropTarget = document.elementFromPoint(event.changedTouches[0].clientX, event.changedTouches[0].clientY);
-                if (dropTarget && dropTarget.id === 'box-container') {
-                     drop(event); // Call the drop function
+                const target = document.elementFromPoint(event.touches[0].clientX, event.touches[0].clientY);
+                if (target && target.id === 'box-container') {
+                    // Simulate a drop event
+                    const simulatedEvent = {
+                        preventDefault: () => {},
+                        dataTransfer: {
+                            getData: () => grain.id
+                        }
+                    };
+                    drop(simulatedEvent);
                 }
             }
         }
-
+        
         // Initialization
         window.onload = function() {
             updateStats();
@@ -248,10 +240,8 @@
                     dragStart(e);
                 }
             });
-            // Add mobile touch event listeners
-            document.addEventListener('touchstart', touchStart, { passive: false });
-            document.addEventListener('touchmove', touchMove, { passive: false });
-            document.addEventListener('touchend', touchEnd);
+            // Add mobile touch event listener
+            document.addEventListener('touchend', handleTouch, { passive: false });
         };
     </script>
 </body>
