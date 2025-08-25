@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>100000</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* スタイルは黒と白のピクセルアート風に */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            user-select: none; /* 粒の選択を防止 */
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            gap: 50px;
+            padding: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .stats-box {
+            /* 背景色と枠線を削除 */
+            padding: 0;
+            border: none;
+            background: none;
+            font-size: 2.5rem; /* 大きめのフォントサイズ */
+            text-align: center;
+            line-height: 1;
+            min-width: 200px;
+        }
+        
+        #box-container {
+            width: 150px;
+            height: 150px;
+            border: 5px solid #fff;
+            background-color: #000;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            justify-content: flex-start;
+            padding: 5px;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease-in-out;
+            box-sizing: border-box;
+        }
+        
+        .box-flash {
+            animation: box-flash-animation 0.5s ease-out;
+        }
+
+        @keyframes box-flash-animation {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); box-shadow: 0 0 25px rgba(255, 255, 255, 0.5); }
+            100% { transform: scale(1); }
+        }
+
+        .grain {
+            width: 10px;
+            height: 10px;
+            background-color: #ffffff;
+            cursor: grab;
+            margin: 1px;
+            border: 1px solid transparent;
+            box-sizing: border-box;
+        }
+
+        .grain:hover {
+            border-color: #aaa;
+        }
+
+        #grain-columns-container {
+            display: flex;
+            flex-direction: row;
+            overflow: hidden;
+            width: 500px;
+            height: 400px;
+            align-items: flex-end;
+            position: relative;
+        }
+
+        .grain-column {
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 2px;
+            padding: 0 10px;
+            transition: transform 0.5s ease-out;
+            position: absolute;
+            bottom: 0;
+        }
+
+        #single-grain-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #000;
+            border: 3px solid #fff;
+            padding: 20px 40px;
+            z-index: 1000;
+            font-size: 1.5rem;
+            text-align: center;
+            display: none;
+        }
+
+        .credits {
+            position: fixed;
+            bottom: 10px;
+            font-size: 0.8rem;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- 左側のパネル: 箱と統計情報 -->
+        <div class="left-panel">
+            <div class="stats-box">
+                <!-- 「残り」のテキストを削除し、数字のみ表示 -->
+                <span id="grains-remaining">100000</span>
+            </div>
+            <!-- 粒をドロップする箱 -->
+            <div id="box-container" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+        </div>
+        
+        <!-- 右側の粒コンテナ。常に1粒だけ表示される。-->
+        <div id="single-grain-container">
+             <div class="grain" draggable="true" id="grain-0"></div>
+        </div>
+    </div>
+
+    <script>
+        const totalGrains = 100000;
+        const boxCapacity = 100; // 箱の容量を50に変更
+        let grainsRemaining = totalGrains;
+        let currentBoxGrains = 0;
+        
+        const boxContainer = document.getElementById('box-container');
+        const singleGrainContainer = document.getElementById('single-grain-container');
+        const grainsRemainingSpan = document.getElementById('grains-remaining');
+        const messageBox = document.getElementById('message-box');
+        const singleGrainElement = document.getElementById('grain-0');
+
+        // ゲームの状態を更新する関数
+        function updateStats() {
+            grainsRemainingSpan.textContent = grainsRemaining;
+        }
+
+        // ドラッグ操作を許可
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+
+        // 粒がドロップされたときの処理
+        function drop(event) {
+            event.preventDefault();
+            const grainId = event.dataTransfer.getData("text/plain");
+            const draggedGrain = document.getElementById(grainId);
+            
+            // 粒が有効なもので、まだ箱に入っていないか確認
+            if (draggedGrain && draggedGrain.parentNode.id === 'single-grain-container') {
+                // 新しい粒を生成して箱に追加
+                const newGrainInBox = document.createElement('div');
+                newGrainInBox.classList.add('grain');
+                boxContainer.appendChild(newGrainInBox);
+
+                currentBoxGrains++;
+                grainsRemaining--;
+                
+                updateStats();
+                
+                // 箱がいっぱいになったら新しい箱に切り替える
+                if (currentBoxGrains >= boxCapacity) {
+                    currentBoxGrains = 0;
+                    
+                    // 箱の中身をクリアし、フラッシュアニメーションを適用
+                    boxContainer.innerHTML = '';
+                    boxContainer.classList.add('box-flash');
+                    setTimeout(() => boxContainer.classList.remove('box-flash'), 500);
+                }
+                
+                // 全ての粒を詰め終わったらゲームクリア
+                if (grainsRemaining <= 0) {
+                    // 全ての粒を運び終えたら、元の粒を非表示にする
+                    singleGrainElement.style.display = 'none';
+                }
+            }
+        }
+
+        // ドラッグ開始時の処理
+        function dragStart(event) {
+            event.dataTransfer.setData("text/plain", event.target.id);
+        }
+
+        // 初期化
+        window.onload = function() {
+            updateStats();
+            // ドラッグイベントリスナーを追加
+            document.addEventListener('dragstart', function(e) {
+                if (e.target.classList.contains('grain')) {
+                    dragStart(e);
+                }
+            });
+        };
+    </script>
+</body>
+</html>
