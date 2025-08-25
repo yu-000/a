@@ -6,7 +6,7 @@
     <title>100000</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* スタイルは黒と白のピクセルアート風に */
+        /* Base styles for the pixel art theme */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #1a1a1a;
@@ -18,7 +18,8 @@
             height: 100vh;
             margin: 0;
             overflow: hidden;
-            user-select: none; /* 粒の選択を防止 */
+            user-select: none; /* Prevent text selection */
+            -webkit-user-drag: none; /* Prevent drag on iOS */
         }
         
         .game-container {
@@ -40,11 +41,10 @@
         }
 
         .stats-box {
-            /* 背景色と枠線を削除 */
             padding: 0;
             border: none;
             background: none;
-            font-size: 2.5rem; /* 大きめのフォントサイズ */
+            font-size: 2.5rem;
             text-align: center;
             line-height: 1;
             min-width: 200px;
@@ -88,27 +88,8 @@
         .grain:hover {
             border-color: #aaa;
         }
-
-        #grain-columns-container {
-            display: flex;
-            flex-direction: row;
-            overflow: hidden;
-            width: 500px;
-            height: 400px;
-            align-items: flex-end;
-            position: relative;
-        }
-
-        .grain-column {
-            display: flex;
-            flex-direction: column-reverse;
-            gap: 2px;
-            padding: 0 10px;
-            transition: transform 0.5s ease-out;
-            position: absolute;
-            bottom: 0;
-        }
-
+        
+        /* The single grain container for the '1 grain' concept */
         #single-grain-container {
             position: relative;
             width: 100px;
@@ -131,28 +112,40 @@
             text-align: center;
             display: none;
         }
-
-        .credits {
-            position: fixed;
-            bottom: 10px;
-            font-size: 0.8rem;
-            color: #888;
+        
+        /* --- Responsive Design for Mobile and Tablet --- */
+        @media (max-width: 768px) {
+            .game-container {
+                flex-direction: column;
+                gap: 30px;
+            }
+            .stats-box {
+                font-size: 2rem;
+            }
+            #box-container {
+                width: 120px;
+                height: 120px;
+            }
+            #single-grain-container {
+                width: 80px;
+                height: 80px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="game-container">
-        <!-- 左側のパネル: 箱と統計情報 -->
+        <!-- Left panel: Box and stats -->
         <div class="left-panel">
             <div class="stats-box">
-                <!-- 「残り」のテキストを削除し、数字のみ表示 -->
+                <!-- Display only the number of remaining grains -->
                 <span id="grains-remaining">100000</span>
             </div>
-            <!-- 粒をドロップする箱 -->
+            <!-- The box where grains are dropped -->
             <div id="box-container" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
         </div>
         
-        <!-- 右側の粒コンテナ。常に1粒だけ表示される。-->
+        <!-- Right panel: The single grain container that is always visible -->
         <div id="single-grain-container">
              <div class="grain" draggable="true" id="grain-0"></div>
         </div>
@@ -160,35 +153,34 @@
 
     <script>
         const totalGrains = 100000;
-        const boxCapacity = 100; // 箱の容量を50に変更
+        const boxCapacity = 100;
         let grainsRemaining = totalGrains;
         let currentBoxGrains = 0;
         
         const boxContainer = document.getElementById('box-container');
         const singleGrainContainer = document.getElementById('single-grain-container');
         const grainsRemainingSpan = document.getElementById('grains-remaining');
-        const messageBox = document.getElementById('message-box');
         const singleGrainElement = document.getElementById('grain-0');
 
-        // ゲームの状態を更新する関数
+        // Function to update the game stats
         function updateStats() {
             grainsRemainingSpan.textContent = grainsRemaining;
         }
 
-        // ドラッグ操作を許可
+        // Allow drop operation
         function allowDrop(event) {
             event.preventDefault();
         }
 
-        // 粒がドロップされたときの処理
+        // Handler for when a grain is dropped
         function drop(event) {
             event.preventDefault();
             const grainId = event.dataTransfer.getData("text/plain");
             const draggedGrain = document.getElementById(grainId);
             
-            // 粒が有効なもので、まだ箱に入っていないか確認
+            // Check if the grain is valid and not already in the box
             if (draggedGrain && draggedGrain.parentNode.id === 'single-grain-container') {
-                // 新しい粒を生成して箱に追加
+                // Create a new grain and add it to the box
                 const newGrainInBox = document.createElement('div');
                 newGrainInBox.classList.add('grain');
                 boxContainer.appendChild(newGrainInBox);
@@ -198,38 +190,68 @@
                 
                 updateStats();
                 
-                // 箱がいっぱいになったら新しい箱に切り替える
+                // If the box is full, switch to a new one
                 if (currentBoxGrains >= boxCapacity) {
                     currentBoxGrains = 0;
                     
-                    // 箱の中身をクリアし、フラッシュアニメーションを適用
+                    // Clear the box content and apply the flash animation
                     boxContainer.innerHTML = '';
                     boxContainer.classList.add('box-flash');
                     setTimeout(() => boxContainer.classList.remove('box-flash'), 500);
                 }
                 
-                // 全ての粒を詰め終わったらゲームクリア
+                // If all grains are gone, the game is finished
                 if (grainsRemaining <= 0) {
-                    // 全ての粒を運び終えたら、元の粒を非表示にする
                     singleGrainElement.style.display = 'none';
                 }
             }
         }
 
-        // ドラッグ開始時の処理
+        // Handler for when a drag operation starts
         function dragStart(event) {
             event.dataTransfer.setData("text/plain", event.target.id);
         }
+        
+        // Add touch event listeners for mobile devices
+        function touchStart(event) {
+            // Prevent multiple touches
+            if (event.touches.length > 1) return;
+            const grain = event.target.closest('.grain');
+            if (grain) {
+                // Set data for the drop function
+                event.dataTransfer = { getData: () => grain.id };
+            }
+        }
 
-        // 初期化
+        function touchMove(event) {
+            // Do nothing on touch move to make it a simple tap-and-drop
+            event.preventDefault(); // Prevent scrolling
+        }
+
+        function touchEnd(event) {
+            const grain = event.target.closest('.grain');
+            if (grain) {
+                // Check if the drop was on the box
+                const dropTarget = document.elementFromPoint(event.changedTouches[0].clientX, event.changedTouches[0].clientY);
+                if (dropTarget && dropTarget.id === 'box-container') {
+                     drop(event); // Call the drop function
+                }
+            }
+        }
+
+        // Initialization
         window.onload = function() {
             updateStats();
-            // ドラッグイベントリスナーを追加
+            // Add desktop drag event listener
             document.addEventListener('dragstart', function(e) {
                 if (e.target.classList.contains('grain')) {
                     dragStart(e);
                 }
             });
+            // Add mobile touch event listeners
+            document.addEventListener('touchstart', touchStart, { passive: false });
+            document.addEventListener('touchmove', touchMove, { passive: false });
+            document.addEventListener('touchend', touchEnd);
         };
     </script>
 </body>
