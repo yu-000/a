@@ -3,246 +3,461 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>100000</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <title>今日だけの寄せ書き</title>
     <style>
-        /* Base styles for the pixel art theme */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #1a1a1a;
-            color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-            user-select: none; /* Prevent text selection */
-            -webkit-user-drag: none; /* Prevent drag on iOS */
-        }
-        
-        .game-container {
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: center;
-            gap: 50px;
+            font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', 'Yu Gothic', sans-serif;
+            background: #fdf6e3;
+            min-height: 100vh;
             padding: 20px;
-            width: 100%;
-            max-width: 1200px;
         }
 
-        .left-panel {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .stats-box {
-            padding: 0;
-            border: none;
-            background: none;
-            font-size: 2.5rem;
+        /* ── ヘッダー ── */
+        .header {
             text-align: center;
-            line-height: 1;
-            min-width: 200px;
+            padding: 24px 0 28px;
         }
-        
-        #box-container {
-            width: 150px;
-            height: 150px;
-            border: 5px solid #fff;
-            background-color: #000;
+        .header h1 {
+            font-size: 2.2rem;
+            color: #333;
+            letter-spacing: 0.05em;
+        }
+        .header h1 span { font-size: 1.8rem; }
+        .timer {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 6px 18px;
+            background: #fff3cd;
+            border: 1px solid #f0c040;
+            border-radius: 20px;
+            font-size: 0.88rem;
+            color: #7a5800;
+        }
+        #count {
+            margin-top: 6px;
+            font-size: 0.85rem;
+            color: #999;
+        }
+
+        /* ── 投稿フォーム ── */
+        .form-card {
+            max-width: 580px;
+            margin: 0 auto 40px;
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+        }
+        .form-card input,
+        .form-card textarea {
+            width: 100%;
+            padding: 11px 14px;
+            border: 2px solid #e5e5e5;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: inherit;
+            margin-bottom: 12px;
+            transition: border-color 0.2s;
+            background: #fafafa;
+        }
+        .form-card input:focus,
+        .form-card textarea:focus {
+            outline: none;
+            border-color: #f4a261;
+            background: #fff;
+        }
+        .form-card textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        .char-count {
+            font-size: 0.78rem;
+            color: #bbb;
+            text-align: right;
+            margin-top: -8px;
+            margin-bottom: 12px;
+        }
+
+        /* カラーピッカー */
+        .color-label {
+            font-size: 0.83rem;
+            color: #888;
+            margin-bottom: 8px;
+        }
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+        .color-option {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: transform 0.15s, border-color 0.15s;
+        }
+        .color-option:hover { transform: scale(1.15); }
+        .color-option.selected {
+            border-color: #555;
+            transform: scale(1.2);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #f4a261, #e76f51);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.05rem;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s;
+            letter-spacing: 0.05em;
+        }
+        .submit-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+        .submit-btn:active { transform: translateY(0); }
+        .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .hint {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #bbb;
+            margin-top: 8px;
+        }
+
+        /* ── メッセージ一覧 ── */
+        .messages-wrap {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .messages-grid {
             display: flex;
             flex-wrap: wrap;
-            align-content: flex-start;
-            justify-content: flex-start;
-            padding: 5px;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
-            transition: transform 0.3s ease-in-out;
-            box-sizing: border-box;
-        }
-        
-        .box-flash {
-            animation: box-flash-animation 0.5s ease-out;
-        }
-
-        @keyframes box-flash-animation {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); box-shadow: 0 0 25px rgba(255, 255, 255, 0.5); }
-            100% { transform: scale(1); }
-        }
-
-        .grain {
-            width: 10px;
-            height: 10px;
-            background-color: #ffffff;
-            cursor: grab;
-            margin: 1px;
-            border: 1px solid transparent;
-            box-sizing: border-box;
-        }
-
-        .grain:hover {
-            border-color: #aaa;
-        }
-        
-        /* The single grain container for the '1 grain' concept */
-        #single-grain-container {
-            position: relative;
-            width: 100px;
-            height: 100px;
-            display: flex;
+            gap: 18px;
             justify-content: center;
-            align-items: center;
         }
 
-        .message-box {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: #000;
-            border: 3px solid #fff;
-            padding: 20px 40px;
-            z-index: 1000;
-            font-size: 1.5rem;
-            text-align: center;
-            display: none;
+        /* 付箋スタイル */
+        .card {
+            width: 190px;
+            min-height: 170px;
+            padding: 18px 16px 28px;
+            border-radius: 3px;
+            box-shadow: 3px 4px 14px rgba(0,0,0,0.14);
+            position: relative;
+            transform: rotate(var(--rot));
+            transition: transform 0.2s, box-shadow 0.2s, z-index 0s;
+            cursor: default;
+            word-break: break-word;
+            will-change: transform;
         }
-        
-        /* --- Responsive Design for Mobile and Tablet --- */
-        @media (max-width: 768px) {
-            .game-container {
-                flex-direction: column;
-                gap: 30px;
-            }
-            .stats-box {
-                font-size: 2rem;
-            }
-            #box-container {
-                width: 120px;
-                height: 120px;
-            }
-            #single-grain-container {
-                width: 80px;
-                height: 80px;
-            }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 10px;
+            background: rgba(0,0,0,0.08);
+            border-radius: 0 0 4px 4px;
+        }
+        .card:hover {
+            transform: rotate(0deg) scale(1.06);
+            box-shadow: 6px 8px 24px rgba(0,0,0,0.2);
+            z-index: 20;
+        }
+        .card .c-name {
+            font-size: 0.78rem;
+            font-weight: bold;
+            opacity: 0.6;
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .card .c-text {
+            font-size: 0.97rem;
+            line-height: 1.6;
+        }
+        .card .c-time {
+            position: absolute;
+            bottom: 8px;
+            right: 10px;
+            font-size: 0.68rem;
+            opacity: 0.45;
+        }
+
+        .no-messages {
+            text-align: center;
+            color: #aaa;
+            font-size: 1.1rem;
+            padding: 60px 20px;
+            width: 100%;
+        }
+
+        /* 新着アニメ */
+        @keyframes popIn {
+            from { opacity: 0; transform: rotate(var(--rot)) scale(0.7); }
+            to   { opacity: 1; transform: rotate(var(--rot)) scale(1); }
+        }
+        .card.new-card { animation: popIn 0.4s cubic-bezier(.17,.67,.3,1.3) forwards; }
+
+        /* エラー */
+        .error-banner {
+            display: none;
+            background: #fff0f0;
+            border: 1px solid #f66;
+            border-radius: 10px;
+            padding: 14px 20px;
+            margin: 0 auto 20px;
+            max-width: 580px;
+            font-size: 0.88rem;
+            color: #c00;
+            line-height: 1.6;
+        }
+        .error-banner a { color: #c00; }
+
+        @media (max-width: 480px) {
+            .header h1 { font-size: 1.6rem; }
+            .card { width: 160px; min-height: 150px; font-size: 0.9rem; }
         }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <!-- Left panel: Box and stats -->
-        <div class="left-panel">
-            <div class="stats-box">
-                <!-- Display only the number of remaining grains -->
-                <span id="grains-remaining">100000</span>
-            </div>
-            <!-- The box where grains are dropped -->
-            <div id="box-container" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
-        </div>
-        
-        <!-- Right panel: The single grain container that is always visible -->
-        <div id="single-grain-container">
-             <div class="grain" draggable="true" id="grain-0"></div>
-        </div>
+
+<div class="header">
+    <h1><span>📝</span> 今日だけの寄せ書き</h1>
+    <div class="timer" id="timer">読み込み中...</div>
+    <p id="count"></p>
+</div>
+
+<div class="error-banner" id="error-banner">
+    ⚠️ Firebase の設定が必要です。<br>
+    <strong>index.html</strong> 内の <code>firebaseConfig</code> を
+    <a href="https://console.firebase.google.com" target="_blank">Firebase Console</a>
+    で作成したプロジェクトの設定値に書き換えてください。<br>
+    Realtime Database のルールを <code>"read": true, "write": true</code> にしてください。
+</div>
+
+<div class="form-card">
+    <input type="text" id="name-input" placeholder="お名前（任意・最大15字）" maxlength="15" />
+    <textarea id="msg-input" placeholder="メッセージを書いてね… (Ctrl+Enter で投稿)" maxlength="200"></textarea>
+    <div class="char-count"><span id="char-count">0</span> / 200</div>
+    <p class="color-label">付箋の色：</p>
+    <div class="color-picker" id="color-picker"></div>
+    <button class="submit-btn" id="submit-btn" onclick="submitMsg()">投稿する ✏️</button>
+    <p class="hint">投稿したメッセージは 0:00 になると消えます</p>
+</div>
+
+<div class="messages-wrap">
+    <div class="messages-grid" id="messages-grid">
+        <div class="no-messages">読み込み中…</div>
     </div>
+</div>
 
-    <script>
-        const totalGrains = 100000;
-        const boxCapacity = 100;
-        let grainsRemaining = totalGrains;
-        let currentBoxGrains = 0;
-        
-        const boxContainer = document.getElementById('box-container');
-        const singleGrainContainer = document.getElementById('single-grain-container');
-        const grainsRemainingSpan = document.getElementById('grains-remaining');
-        const singleGrainElement = document.getElementById('grain-0');
+<!-- ============================================================
+     🔧 Firebase 設定方法
+     1. https://console.firebase.google.com でプロジェクト作成
+     2. 「Realtime Database」を有効化（テストモードで OK）
+     3. プロジェクトの設定 → ウェブアプリを追加 → 設定値をコピー
+     4. 下の firebaseConfig を書き換えてください
+     ============================================================ -->
+<script type="module">
+    import { initializeApp }  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getDatabase, ref, push, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
-        // Function to update the game stats
-        function updateStats() {
-            grainsRemainingSpan.textContent = grainsRemaining;
-        }
+    // ↓↓↓ ここを自分の Firebase 設定に変更 ↓↓↓
+    const firebaseConfig = {
+        apiKey:            "YOUR_API_KEY",
+        authDomain:        "YOUR_PROJECT_ID.firebaseapp.com",
+        databaseURL:       "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+        projectId:         "YOUR_PROJECT_ID",
+        storageBucket:     "YOUR_PROJECT_ID.appspot.com",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId:             "YOUR_APP_ID"
+    };
+    // ↑↑↑ ここまで ↑↑↑
 
-        // Allow drop operation
-        function allowDrop(event) {
-            event.preventDefault();
-        }
+    // 設定が未入力の場合はエラーバナーを表示
+    if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+        document.getElementById('error-banner').style.display = 'block';
+        document.getElementById('messages-grid').innerHTML =
+            '<div class="no-messages">Firebase の設定を完了すると使えます</div>';
+        document.getElementById('submit-btn').disabled = true;
+    }
 
-        // Handler for when a grain is dropped
-        function drop(event) {
-            event.preventDefault();
-            const grainId = event.dataTransfer.getData("text/plain");
-            const draggedGrain = document.getElementById(grainId);
-            
-            // Check if the grain is valid and not already in the box
-            if (draggedGrain && draggedGrain.parentNode.id === 'single-grain-container') {
-                // Create a new grain and add it to the box
-                const newGrainInBox = document.createElement('div');
-                newGrainInBox.classList.add('grain');
-                boxContainer.appendChild(newGrainInBox);
+    let db, messagesRef;
+    try {
+        const app = initializeApp(firebaseConfig);
+        db = getDatabase(app);
+    } catch(e) {
+        console.error('Firebase init error:', e);
+    }
 
-                currentBoxGrains++;
-                grainsRemaining--;
-                
-                updateStats();
-                
-                // If the box is full, switch to a new one
-                if (currentBoxGrains >= boxCapacity) {
-                    currentBoxGrains = 0;
-                    
-                    // Clear the box content and apply the flash animation
-                    boxContainer.innerHTML = '';
-                    boxContainer.classList.add('box-flash');
-                    setTimeout(() => boxContainer.classList.remove('box-flash'), 500);
-                }
-                
-                // If all grains are gone, the game is finished
-                if (grainsRemaining <= 0) {
-                    singleGrainElement.style.display = 'none';
-                }
-            }
-        }
+    // 今日の日付をルームキーに使用（0時でリセット）
+    function todayKey() {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
 
-        // Handler for when a drag operation starts
-        function dragStart(event) {
-            event.dataTransfer.setData("text/plain", event.target.id);
-        }
-        
-        // Touch events for mobile drag-and-drop
-        function handleTouch(event) {
-            const grain = singleGrainElement;
-            
-            if (grain) {
-                const target = document.elementFromPoint(event.touches[0].clientX, event.touches[0].clientY);
-                if (target && target.id === 'box-container') {
-                    // Simulate a drop event
-                    const simulatedEvent = {
-                        preventDefault: () => {},
-                        dataTransfer: {
-                            getData: () => grain.id
-                        }
-                    };
-                    drop(simulatedEvent);
-                }
-            }
-        }
-        
-        // Initialization
-        window.onload = function() {
-            updateStats();
-            // Add desktop drag event listener
-            document.addEventListener('dragstart', function(e) {
-                if (e.target.classList.contains('grain')) {
-                    dragStart(e);
-                }
-            });
-            // Add mobile touch event listener
-            document.addEventListener('touchend', handleTouch, { passive: false });
+    if (db) {
+        messagesRef = ref(db, `yosegaki/${todayKey()}`);
+        setupListener();
+    }
+
+    // ── カラーパレット ──
+    const COLORS = [
+        { bg: '#fff9a3', label: '黄色' },
+        { bg: '#ffd6e0', label: 'ピンク' },
+        { bg: '#b5ead7', label: '緑' },
+        { bg: '#c4deff', label: '水色' },
+        { bg: '#ffd8a8', label: 'オレンジ' },
+        { bg: '#e8d5ff', label: '紫' },
+        { bg: '#ffffff', label: '白' },
+    ];
+    let selectedBg = COLORS[0].bg;
+
+    const picker = document.getElementById('color-picker');
+    COLORS.forEach((c, i) => {
+        const el = document.createElement('div');
+        el.className = 'color-option' + (i === 0 ? ' selected' : '');
+        el.style.background = c.bg;
+        el.style.boxShadow = '0 1px 4px rgba(0,0,0,0.15)';
+        el.title = c.label;
+        el.onclick = () => {
+            picker.querySelectorAll('.color-option').forEach(x => x.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedBg = c.bg;
         };
-    </script>
+        picker.appendChild(el);
+    });
+
+    // ── 文字数カウント ──
+    document.getElementById('msg-input').addEventListener('input', function() {
+        document.getElementById('char-count').textContent = this.value.length;
+    });
+
+    // ── Ctrl+Enter で投稿 ──
+    document.getElementById('msg-input').addEventListener('keydown', e => {
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) submitMsg();
+    });
+
+    // ── カウントダウン ──
+    function updateTimer() {
+        const now = new Date();
+        const midnight = new Date(now);
+        midnight.setHours(24, 0, 0, 0);
+        const diff = midnight - now;
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        document.getElementById('timer').textContent =
+            `0時になるとメッセージが消えます ⏳ あと ${h}時間${m}分${s}秒`;
+        // 日付が変わったらリロード
+        if (diff <= 0) location.reload();
+    }
+    setInterval(updateTimer, 1000);
+    updateTimer();
+
+    // ── リアルタイム受信 ──
+    let knownIds = new Set();
+
+    function setupListener() {
+        onValue(messagesRef, snapshot => {
+            const data = snapshot.val();
+            const grid = document.getElementById('messages-grid');
+
+            if (!data) {
+                grid.innerHTML = '<div class="no-messages">まだメッセージがありません。<br>最初の一言を書いてみましょう！ ✍️</div>';
+                document.getElementById('count').textContent = '';
+                knownIds.clear();
+                return;
+            }
+
+            const entries = Object.entries(data)
+                .map(([id, v]) => ({ id, ...v }))
+                .sort((a, b) => a.ts - b.ts);
+
+            document.getElementById('count').textContent = `${entries.length} 件のメッセージ`;
+
+            // 差分追加（全再描画しない）
+            const newIds = new Set(entries.map(e => e.id));
+            if (knownIds.size === 0) {
+                // 初回: 全描画
+                grid.innerHTML = '';
+                entries.forEach(msg => grid.appendChild(makeCard(msg, false)));
+            } else {
+                entries.forEach(msg => {
+                    if (!knownIds.has(msg.id)) {
+                        grid.appendChild(makeCard(msg, true));
+                    }
+                });
+            }
+            knownIds = newIds;
+        }, err => {
+            console.error(err);
+            document.getElementById('error-banner').style.display = 'block';
+        });
+    }
+
+    function makeCard(msg, isNew) {
+        const card = document.createElement('div');
+        card.className = 'card' + (isNew ? ' new-card' : '');
+        const rot = ((msg.ts % 100) / 100 * 8 - 4).toFixed(1); // -4 ~ +4 deg
+        card.style.setProperty('--rot', `${rot}deg`);
+        card.style.background = msg.color || '#fff9a3';
+
+        const t = new Date(msg.ts);
+        const time = `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+
+        card.innerHTML = `
+            <div class="c-name">${esc(msg.name || '名無しさん')}</div>
+            <div class="c-text">${esc(msg.text).replace(/\n/g, '<br>')}</div>
+            <div class="c-time">${time}</div>
+        `;
+        return card;
+    }
+
+    function esc(s) {
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    // ── 投稿 ──
+    window.submitMsg = async function() {
+        if (!db) return;
+        const nameEl = document.getElementById('name-input');
+        const msgEl  = document.getElementById('msg-input');
+        const btn    = document.getElementById('submit-btn');
+        const text   = msgEl.value.trim();
+        if (!text) { msgEl.focus(); return; }
+
+        btn.disabled = true;
+        btn.textContent = '投稿中…';
+        try {
+            await push(messagesRef, {
+                name:  nameEl.value.trim() || '名無しさん',
+                text:  text,
+                color: selectedBg,
+                ts:    Date.now()
+            });
+            msgEl.value = '';
+            document.getElementById('char-count').textContent = '0';
+        } catch(e) {
+            alert('投稿に失敗しました。Firebase の設定を確認してください。\n' + e.message);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '投稿する ✏️';
+        }
+    };
+</script>
 </body>
 </html>
