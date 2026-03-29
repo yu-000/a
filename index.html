@@ -550,7 +550,8 @@
             msgEl.value = '';
             document.getElementById('char-count').textContent = '0';
         } catch(e) {
-            alert('投稿に失敗しました。Firebase の設定を確認してください。\n' + e.message);
+            console.error('投稿エラー:', e);
+            alert('投稿に失敗しました。\n\nエラー: ' + e.message + '\n\nFirebase Console で Realtime Database の URL とルールを確認してください。');
         } finally {
             btn.disabled = false;
             btn.textContent = '投稿する ✏️';
