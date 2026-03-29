@@ -271,17 +271,15 @@
     import { initializeApp }  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
     import { getDatabase, ref, push, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
-    // ↓↓↓ ここを自分の Firebase 設定に変更 ↓↓↓
     const firebaseConfig = {
-        apiKey:            "YOUR_API_KEY",
-        authDomain:        "YOUR_PROJECT_ID.firebaseapp.com",
-        databaseURL:       "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-        projectId:         "YOUR_PROJECT_ID",
-        storageBucket:     "YOUR_PROJECT_ID.appspot.com",
-        messagingSenderId: "YOUR_SENDER_ID",
-        appId:             "YOUR_APP_ID"
+        apiKey:            "AIzaSyAYInw3toiMgf7gbLa81gNvdwgXHpD25SU",
+        authDomain:        "tekist-55518.firebaseapp.com",
+        databaseURL:       "https://tekist-55518-default-rtdb.firebaseio.com",
+        projectId:         "tekist-55518",
+        storageBucket:     "tekist-55518.firebasestorage.app",
+        messagingSenderId: "1094877502738",
+        appId:             "1:1094877502738:web:13a968e89a4b99f90167cb"
     };
-    // ↑↑↑ ここまで ↑↑↑
 
     // 設定が未入力の場合はエラーバナーを表示
     if (firebaseConfig.apiKey === "YOUR_API_KEY") {
