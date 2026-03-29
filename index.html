@@ -194,6 +194,35 @@
             opacity: 0.45;
         }
 
+        /* 削除ボタン（自分の投稿のみ表示） */
+        .card .del-btn {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(0,0,0,0.15);
+            color: rgba(0,0,0,0.5);
+            font-size: 0.75rem;
+            line-height: 22px;
+            text-align: center;
+            cursor: pointer;
+            padding: 0;
+            display: none;
+            transition: background 0.15s, color 0.15s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .card:hover .del-btn,
+        .card:focus-within .del-btn { display: block; }
+        .card .del-btn:hover { background: #e74c3c; color: #fff; }
+
+        @media (max-width: 600px) {
+            /* スマホは常に削除ボタン表示 */
+            .card .del-btn { display: block; }
+        }
+
         .no-messages {
             text-align: center;
             color: #aaa;
@@ -310,7 +339,7 @@
      ============================================================ -->
 <script type="module">
     import { initializeApp }  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-    import { getDatabase, ref, push, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+    import { getDatabase, ref, push, onValue, remove } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
     const firebaseConfig = {
         apiKey:            "AIzaSyAYInw3toiMgf7gbLa81gNvdwgXHpD25SU",
@@ -347,6 +376,21 @@
     if (db) {
         messagesRef = ref(db, `yosegaki/${todayKey()}`);
         setupListener();
+    }
+
+    // ── 自分の投稿ID管理 (localStorage) ──
+    const MY_IDS_KEY = 'yosegaki-my-ids';
+    function getMyIds() {
+        try { return JSON.parse(localStorage.getItem(MY_IDS_KEY) || '[]'); } catch { return []; }
+    }
+    function saveMyId(id) {
+        const ids = getMyIds();
+        ids.push(id);
+        localStorage.setItem(MY_IDS_KEY, JSON.stringify(ids));
+    }
+    function removeMyId(id) {
+        const ids = getMyIds().filter(x => x !== id);
+        localStorage.setItem(MY_IDS_KEY, JSON.stringify(ids));
     }
 
     // ── カラーパレット ──
@@ -454,11 +498,25 @@
         const t = new Date(msg.ts);
         const time = `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
 
+        const isMine = getMyIds().includes(msg.id);
         card.innerHTML = `
             <div class="c-name">${esc(msg.name || '名無しさん')}</div>
             <div class="c-text">${esc(msg.text).replace(/\n/g, '<br>')}</div>
             <div class="c-time">${time}</div>
+            ${isMine ? `<button class="del-btn" title="削除">✕</button>` : ''}
         `;
+        if (isMine) {
+            card.querySelector('.del-btn').onclick = async () => {
+                if (!confirm('このメッセージを削除しますか？')) return;
+                try {
+                    await remove(ref(db, `yosegaki/${todayKey()}/${msg.id}`));
+                    removeMyId(msg.id);
+                    card.remove();
+                } catch(e) {
+                    alert('削除に失敗しました。\n' + e.message);
+                }
+            };
+        }
         return card;
     }
 
@@ -482,12 +540,13 @@
         btn.disabled = true;
         btn.textContent = '投稿中…';
         try {
-            await push(messagesRef, {
+            const result = await push(messagesRef, {
                 name:  nameEl.value.trim() || '名無しさん',
                 text:  text,
                 color: selectedBg,
                 ts:    Date.now()
             });
+            saveMyId(result.key);
             msgEl.value = '';
             document.getElementById('char-count').textContent = '0';
         } catch(e) {
