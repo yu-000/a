@@ -6,6 +6,8 @@
     <title>今日だけの寄せ書き</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        /* タップ時のハイライト除去 */
+        button, .color-option { -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', 'Yu Gothic', sans-serif;
@@ -222,9 +224,48 @@
         }
         .error-banner a { color: #c00; }
 
-        @media (max-width: 480px) {
-            .header h1 { font-size: 1.6rem; }
-            .card { width: 160px; min-height: 150px; font-size: 0.9rem; }
+        /* ── モバイル対応 ── */
+        @media (max-width: 600px) {
+            body { padding: 12px; }
+
+            .header { padding: 16px 0 20px; }
+            .header h1 { font-size: 1.5rem; }
+            .timer { font-size: 0.78rem; padding: 5px 12px; }
+
+            .form-card { padding: 16px; border-radius: 12px; margin-bottom: 24px; }
+
+            /* iOS でフォーカス時に拡大しないよう 16px 以上に */
+            .form-card input,
+            .form-card textarea { font-size: 16px; }
+
+            .color-option { width: 42px; height: 42px; }
+
+            .submit-btn { padding: 16px; font-size: 1.1rem; }
+
+            /* カードを2列グリッドに */
+            .messages-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+                justify-items: center;
+            }
+            .card {
+                width: 100%;
+                min-height: 140px;
+                transform: none !important; /* 回転なし */
+                font-size: 0.9rem;
+            }
+            .card:active {
+                transform: scale(0.97) !important;
+                box-shadow: 2px 3px 10px rgba(0,0,0,0.15);
+            }
+            .no-messages { grid-column: 1 / -1; }
+        }
+
+        @media (max-width: 360px) {
+            .header h1 { font-size: 1.3rem; }
+            .messages-grid { grid-template-columns: 1fr; }
+            .card { width: 100%; }
         }
     </style>
 </head>
@@ -246,12 +287,12 @@
 
 <div class="form-card">
     <input type="text" id="name-input" placeholder="お名前（任意・最大15字）" maxlength="15" />
-    <textarea id="msg-input" placeholder="メッセージを書いてね… (Ctrl+Enter で投稿)" maxlength="200"></textarea>
+    <textarea id="msg-input" placeholder="メッセージを書いてね…" maxlength="200"></textarea>
     <div class="char-count"><span id="char-count">0</span> / 200</div>
     <p class="color-label">付箋の色：</p>
     <div class="color-picker" id="color-picker"></div>
     <button class="submit-btn" id="submit-btn" onclick="submitMsg()">投稿する ✏️</button>
-    <p class="hint">投稿したメッセージは 0:00 になると消えます</p>
+    <p class="hint">0:00 になるとメッセージが消えます（PCは Ctrl+Enter で投稿）</p>
 </div>
 
 <div class="messages-wrap">
